@@ -13,44 +13,39 @@ exports.handler = async (event, context) => {
     console.log('Authenticated user:', user);
   try {
 
+   
+
   
+    const  { contact_id, note}  = JSON.parse(event.body);
 
-    const { id } = event.queryStringParameters;
-
- 
     const connection = await mysql.createConnection({
       host: process.env.DB_HOST,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME
     });
-
-    const query = 'SELECT * FROM contacts WHERE id = ?';
-
-
-    const [rows] = await connection.execute(query, [id]);
-
-  
+    const sql =  'INSERT INTO notes (contact_id, note) VALUES (?, ?)';
+    await connection.execute(sql, [contact_id, note] );
     await connection.end();
+   
+   
 
-    if (rows.length === 0) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: "Contact not found" })
-      };
+    
+    if (result.affectedRows !== 1) {
+      throw new Error('Failed to create note.');
     }
 
 
     return {
       statusCode: 200,
-      body: JSON.stringify(rows[0])
+      body: JSON.stringify({ message: 'Note created successfully' })
     };
   } catch (error) {
 
-    console.error('Error:', error.message);
+    console.error('Error creating note:', error.message);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Failed to read contact", details: error.message })
+      body: JSON.stringify({ error: 'Failed to create note', details: error.message })
     };
   }
 };

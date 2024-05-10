@@ -1,6 +1,16 @@
 const mysql = require('mysql2/promise');
 
 exports.handler = async (event, context) => {
+  if (!context.clientContext || !context.clientContext.user) {
+    return {
+    statusCode: 401,
+    body: JSON.stringify({ error: 'You must be logged in.' }),
+    };
+    }
+    
+    const user = context.clientContext.user;
+  
+    console.log('Authenticated user:', user);
  
   try {
     const  { first_name, last_name, email, phone }  = JSON.parse(event.body);
@@ -15,7 +25,9 @@ exports.handler = async (event, context) => {
     const sql =  'INSERT INTO contacts (first_name, last_name, email, phone) VALUES (?, ?, ?, ?)';
     await connection.execute(sql, [first_name, last_name, email, phone] );
     await connection.end();
-    console.log('event body: ', event.body)
+
+    console.log('event body:', event.body)
+    
     return {
       statusCode: 200,
       body: JSON.stringify({ message: "contact created successfully" }),
